@@ -12,19 +12,17 @@
 #endif
 
 #ifdef SELF_CONS_CHARGE
-#define ADD_CHARGE()	PotentialNorm += SPEC_CHARGE;
-#define UPDATE_PROB()	ProbabilityOfIon = 1.0/(1.0+(sqrt(eTemp*Mp/(iTemp*Me))*(eDensity*exp(Potential/ezmax)*pow(eImpactParameter,2)/(pow(iImpactParameter,2)*iDensity*exp(-Potential/izmax)))));
+#define ADD_CHARGE()	PotentialNorm += Particles[i].Species_Charge;
 #define SAVE_CHARGE(x)	RunDataFile << x;
 #else
 #define ADD_CHARGE()
-#define UPDATE_PROB()
 #define SAVE_CHARGE(x)
 #endif
 
 #ifdef SAVE_TRACKS 
 #define DECLARE_TRACK()	std::ofstream TrackDataFiles	
 #define PRIVATE_FILES()	private(TrackDataFiles)
-#define OPEN_TRACK(x)	TrackDataFiles.open(x)
+#define OPEN_TRACK(x)	TrackDataFiles.open(x,std::ofstream::app)
 #define RECORD_TRACK(x)	TrackDataFiles << x
 #define CLOSE_TRACK()	TrackDataFiles.close()
 #else
@@ -53,7 +51,7 @@
 #define DECLARE_LMOM()	std::ofstream LinearDataFile;
 #define OPEN_LMOM()	LinearDataFile.open("Data/DiMPl_LinMom.txt");
 #define HEAD_LMOM()	LinearDataFile << "#Collect num\tSimulated num\tPx\tPy\tPz";
-#define SAVE_LMOM()	LinearDataFile << "\n" << j << "\t" << i << "\t" << SpeciesMass*Velocity;
+#define SAVE_LMOM()	LinearDataFile << "\n" << j << "\t" << i << "\t" << Particles[i].Species_Mass*Particles[i].Velocity;
 #define CLOSE_LMOM()	LinearDataFile.close();
 #else
 #define DECLARE_LMOM()
@@ -81,7 +79,7 @@
 #define DECLARE_EPOS()	std::ofstream EndPosDataFile;
 #define OPEN_EPOS()	EndPosDataFile.open("Data/DiMPl_EndPos.txt");
 #define HEAD_EPOS()	EndPosDataFile << "#Collect num\tSimulated num\tx\ty\tz\tvx\tvy\tvz\tv·r";
-#define SAVE_EPOS()	EndPosDataFile << "\n" << j << "\t" << i << "\t" << Position << "\t" << Velocity << "\t" << Velocity*(Position.getunit());
+#define SAVE_EPOS()	EndPosDataFile << "\n" << j << "\t" << i << "\t" << Particles[i].Position << "\t" << Particles[i].Velocity << "\t" << Particles[i].Velocity*(Particles[i].Position.getunit());
 #define CLOSE_EPOS()	EndPosDataFile.close();
 #else
 #define DECLARE_EPOS()
@@ -95,7 +93,7 @@
 #define DECLARE_SPEC()	std::ofstream SpeciesDataFile;
 #define OPEN_SPEC()	SpeciesDataFile.open("Data/DiMPl_Species.txt");
 #define HEAD_SPEC()	SpeciesDataFile << "#Collect num\tSimulated num\tSpecies Charge(echarge)";
-#define SAVE_SPEC()	SpeciesDataFile << "\n" << j << "\t" << i << "\t" << SPEC_CHARGE;
+#define SAVE_SPEC()	SpeciesDataFile << "\n" << j << "\t" << i << "\t" << Particles[i].Species_Charge;
 #define CLOSE_SPEC()	SpeciesDataFile.close();
 #else
 #define DECLARE_SPEC()
@@ -125,22 +123,22 @@
 
 #ifdef TEST_ANGMOM
 #define DECLARE_AMOM()	threevector INITIAL_AMOM(0.0,0.0,0.0),FINAL_AMOM(0.0,0.0,0.0);
-#define ADD_I_AMOM(x)	INITIAL_AMOM += x;
-#define ADD_F_AMOM(x)	FINAL_AMOM += x;
+#define SAVE_I_AMOM(x)	INITIAL_AMOM = x;
+#define SAVE_F_AMOM(x)	FINAL_AMOM = x;
 #define PRINT_AMOM(x)	std::cout << x;
 #else
 #define DECLARE_AMOM()
-#define ADD_I_AMOM(x)
-#define ADD_F_AMOM(x)
+#define SAVE_I_AMOM(x)
+#define SAVE_F_AMOM(x)
 #define PRINT_AMOM(x)
 #endif
 
 #if defined TEST_ENERGY 
-#define INITIAL_VEL()	threevector InitialVel = Velocity;
-#define INITIAL_POT()	double InitialPot = echarge*echarge*PotentialNorm/(4.0*PI*epsilon0*Position.mag3()*Radius);
-#define RESET_VEL()	InitialVel = Velocity;
-#define RESET_POT()	InitialPot = echarge*echarge*PotentialNorm/(4.0*PI*epsilon0*Position.mag3()*Radius);
-#define FINAL_POT()	double FinalPot = echarge*echarge*PotentialNorm/(4.0*PI*epsilon0*FinalPosition.mag3()*Radius);
+#define INITIAL_VEL()	threevector InitialVel = Particles[i].Velocity;
+#define INITIAL_POT()	double InitialPot = echarge*echarge*PotentialNorm/(4.0*PI*epsilon0*Particles[i].Position.mag3()*Radius);
+#define RESET_VEL()	InitialVel = Particles[i].Velocity;
+#define RESET_POT()	InitialPot = echarge*echarge*PotentialNorm/(4.0*PI*epsilon0*Particles[i].Position.mag3()*Radius);
+#define FINAL_POT()	double FinalPot = echarge*echarge*PotentialNorm/(4.0*PI*epsilon0*FinalParticles[i].Position.mag3()*Radius);
 #define PRINT_ENERGY(x)	std::cout << x
 #else
 #define INITIAL_VEL()
